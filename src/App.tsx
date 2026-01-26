@@ -12,7 +12,7 @@ type Book = {
   isRead: boolean;
 };
 
-const PLACEHOLDER_IMG = "https://via.placeholder.com/90x120.png?text=Book";
+const PLACEHOLDER_IMG = "https://img.freepik.com/free-vector/blue-text-book-library-icon_24877-83092.jpg?semt=ais_hybrid&w=740&q=80";
 
 export default function App() {
   const [books, setBooks] = useState<Book[]>([
@@ -59,7 +59,8 @@ export default function App() {
     const prev = prevRef.current;
     if (prev.books !== books) console.log("books changed", books);
     if (prev.filter !== filter) console.log("filter changed", filter);
-    if (prev.selectedBookId !== selectedBookId) console.log("selectedBookId changed", selectedBookId);
+    if (prev.selectedBookId !== selectedBookId)
+      console.log("selectedBookId changed", selectedBookId);
     prevRef.current = { books, filter, selectedBookId };
   }, [books, filter, selectedBookId]);
 
@@ -117,7 +118,9 @@ export default function App() {
   }
 
   function toggleRead(bookId: string) {
-    setBooks((prev) => prev.map((b) => (b.id === bookId ? { ...b, isRead: !b.isRead } : b)));
+    setBooks((prev) =>
+      prev.map((b) => (b.id === bookId ? { ...b, isRead: !b.isRead } : b))
+    );
   }
 
   // ----------------------------
@@ -167,7 +170,11 @@ export default function App() {
                 прочитано
               </label>
 
-              <Button sx={{ mt: 2 }} variant="contained" onClick={() => setSelectedBookId(null)}>
+              <Button
+                sx={{ mt: 2 }}
+                variant="contained"
+                onClick={() => setSelectedBookId(null)}
+              >
                 Назад до списку
               </Button>
             </Grid>
@@ -201,14 +208,32 @@ export default function App() {
 
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
-            <TextField fullWidth label="Ім’я" value={newName} onChange={(e) => setNewName(e.target.value)} />
+            <TextField
+              fullWidth
+              label="Ім’я"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+            />
           </Grid>
+
           <Grid item xs={12} sm={6}>
-            <TextField fullWidth label="Автор" value={newAuthor} onChange={(e) => setNewAuthor(e.target.value)} />
+            <TextField
+              fullWidth
+              label="Автор"
+              value={newAuthor}
+              onChange={(e) => setNewAuthor(e.target.value)}
+            />
           </Grid>
+
           <Grid item xs={12} sm={6}>
-            <TextField fullWidth label="Жанр" value={newGenre} onChange={(e) => setNewGenre(e.target.value)} />
+            <TextField
+              fullWidth
+              label="Жанр"
+              value={newGenre}
+              onChange={(e) => setNewGenre(e.target.value)}
+            />
           </Grid>
+
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
@@ -217,6 +242,7 @@ export default function App() {
               onChange={(e) => setNewRating(e.target.value)}
             />
           </Grid>
+
           <Grid item xs={12}>
             <TextField
               fullWidth
@@ -227,6 +253,7 @@ export default function App() {
               rows={3}
             />
           </Grid>
+
           <Grid item xs={12}>
             <Button variant="contained" onClick={addBook}>
               Додати
@@ -240,38 +267,47 @@ export default function App() {
       </Typography>
 
       <Grid container spacing={1}>
-        <Grid item xs={12}>
+        {/* Header row (тільки на sm і більше) */}
+        <Grid item xs={12} sx={{ display: { xs: "none", sm: "block" } }}>
           <Paper variant="outlined" sx={{ p: 1.5 }}>
-            <Grid container>
-              <Grid item xs={12} sm={5}>
+            <Grid container spacing={2} alignItems="center">
+              <Grid item sm={5}>
                 <Typography fontWeight={700}>Назва</Typography>
               </Grid>
-              <Grid item xs={12} sm={5}>
+              <Grid item sm={5}>
                 <Typography fontWeight={700}>Автор</Typography>
               </Grid>
-              <Grid item xs={12} sm={2}>
+              <Grid item sm={2}>
                 <Typography fontWeight={700}>Рейтинг</Typography>
               </Grid>
             </Grid>
           </Paper>
         </Grid>
 
+        {/* Books rows */}
         {filteredBooks.map((b) => (
           <Grid item xs={12} key={b.id}>
             <Paper variant="outlined" sx={{ p: 1.5 }}>
-              <Grid container spacing={1} alignItems="center">
+              <Grid container spacing={2} alignItems="center">
                 <Grid item xs={12} sm={5}>
                   <Typography fontWeight={600}>{b.name}</Typography>
                 </Grid>
+
                 <Grid item xs={12} sm={5}>
                   <Typography>{b.author}</Typography>
                 </Grid>
+
                 <Grid item xs={6} sm={2}>
                   <Typography>⭐ {b.rating}</Typography>
                 </Grid>
 
                 <Grid item xs={6} sm="auto">
-                  <Button size="small" variant="contained" onClick={() => setSelectedBookId(b.id)}>
+                  <Button
+                    fullWidth
+                    size="small"
+                    variant="contained"
+                    onClick={() => setSelectedBookId(b.id)}
+                  >
                     Деталі
                   </Button>
                 </Grid>
