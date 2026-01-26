@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Container, Grid, Typography, Button, TextField, Paper } from "@mui/material";
 
 type Book = {
   id: string;
@@ -11,10 +12,9 @@ type Book = {
   isRead: boolean;
 };
 
-const PLACEHOLDER_IMG =
-  "https://via.placeholder.com/90x120.png?text=Book";
+const PLACEHOLDER_IMG = "https://via.placeholder.com/90x120.png?text=Book";
 
-export default function BooksApp() {
+export default function App() {
   const [books, setBooks] = useState<Book[]>([
     {
       id: "1",
@@ -52,35 +52,26 @@ export default function BooksApp() {
     console.log("BooksApp mounted");
   }, []);
 
-  // componentDidUpdate (log changes)
-  const prevRef = useRef({
-    books,
-    filter,
-    selectedBookId,
-  });
+  // componentDidUpdate logs
+  const prevRef = useRef({ books, filter, selectedBookId });
 
   useEffect(() => {
     const prev = prevRef.current;
-
     if (prev.books !== books) console.log("books changed", books);
     if (prev.filter !== filter) console.log("filter changed", filter);
-    if (prev.selectedBookId !== selectedBookId)
-      console.log("selectedBookId changed", selectedBookId);
-
+    if (prev.selectedBookId !== selectedBookId) console.log("selectedBookId changed", selectedBookId);
     prevRef.current = { books, filter, selectedBookId };
   }, [books, filter, selectedBookId]);
 
   const filteredBooks = useMemo(() => {
     const q = filter.trim().toLowerCase();
     if (!q) return books;
-
-    return books.filter((b) => {
-      return (
+    return books.filter(
+      (b) =>
         b.id.toLowerCase().includes(q) ||
         b.name.toLowerCase().includes(q) ||
         b.author.toLowerCase().includes(q)
-      );
-    });
+    );
   }, [books, filter]);
 
   const selectedBook = useMemo(() => {
@@ -126,108 +117,175 @@ export default function BooksApp() {
   }
 
   function toggleRead(bookId: string) {
-    setBooks((prev) =>
-      prev.map((b) => (b.id === bookId ? { ...b, isRead: !b.isRead } : b))
-    );
+    setBooks((prev) => prev.map((b) => (b.id === bookId ? { ...b, isRead: !b.isRead } : b)));
   }
 
   // ----------------------------
-  // "Page": Details
+  // Page: Details
   // ----------------------------
   if (selectedBookId && selectedBook) {
     return (
-      <div style={{ fontFamily: "system-ui", padding: 16, maxWidth: 900, margin: "0 auto" }}>
-        <h2>Сторінка книги</h2>
+      <Container maxWidth="md" sx={{ py: 3 }}>
+        <Typography variant="h4" sx={{ mb: 2 }}>
+          Сторінка книги
+        </Typography>
 
-        <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
-          <img src={selectedBook.imgUrl} alt="book" width={90} height={120} />
-          <div>
-            <div><b>Ім’я:</b> {selectedBook.name}</div>
-            <div><b>Автор:</b> {selectedBook.author}</div>
-            <div><b>Жанр:</b> {selectedBook.genre}</div>
-            <div><b>Рейтинг:</b> {selectedBook.rating}</div>
-            <div style={{ marginTop: 8 }}><b>Опис:</b> {selectedBook.description}</div>
+        <Paper variant="outlined" sx={{ p: 2 }}>
+          <Grid container spacing={2} alignItems="flex-start">
+            <Grid item xs={12} sm={4}>
+              <img
+                src={selectedBook.imgUrl}
+                alt="book"
+                style={{ width: "100%", maxWidth: 220, borderRadius: 8 }}
+              />
+            </Grid>
 
-            <label style={{ display: "block", marginTop: 12 }}>
-              <input
-                type="checkbox"
-                checked={selectedBook.isRead}
-                onChange={() => toggleRead(selectedBook.id)}
-              />{" "}
-              прочитано
-            </label>
+            <Grid item xs={12} sm={8}>
+              <Typography>
+                <b>Ім’я:</b> {selectedBook.name}
+              </Typography>
+              <Typography>
+                <b>Автор:</b> {selectedBook.author}
+              </Typography>
+              <Typography>
+                <b>Жанр:</b> {selectedBook.genre}
+              </Typography>
+              <Typography>
+                <b>Рейтинг:</b> ⭐ {selectedBook.rating}
+              </Typography>
 
-            <button
-              style={{ marginTop: 12 }}
-              onClick={() => setSelectedBookId(null)}
-            >
-              Назад до списку
-            </button>
-          </div>
-        </div>
-      </div>
+              <Typography sx={{ mt: 1 }}>
+                <b>Опис:</b> {selectedBook.description}
+              </Typography>
+
+              <label style={{ display: "block", marginTop: 12 }}>
+                <input
+                  type="checkbox"
+                  checked={selectedBook.isRead}
+                  onChange={() => toggleRead(selectedBook.id)}
+                />{" "}
+                прочитано
+              </label>
+
+              <Button sx={{ mt: 2 }} variant="contained" onClick={() => setSelectedBookId(null)}>
+                Назад до списку
+              </Button>
+            </Grid>
+          </Grid>
+        </Paper>
+      </Container>
     );
   }
 
   // ----------------------------
-  // "Page": List
+  // Page: List
   // ----------------------------
   return (
-    <div style={{ fontFamily: "system-ui", padding: 16, maxWidth: 900, margin: "0 auto" }}>
-      <h2>BooksApp</h2>
+    <Container maxWidth="md" sx={{ py: 3 }}>
+      <Typography variant="h4" sx={{ mb: 2 }}>
+        BooksApp
+      </Typography>
 
-      <div style={{ marginBottom: 14 }}>
-        <input
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          placeholder="Фільтр за id, name, author"
-          style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ccc" }}
-        />
-      </div>
+      <TextField
+        fullWidth
+        label="Фільтр за id, name, author"
+        value={filter}
+        onChange={(e) => setFilter(e.target.value)}
+        sx={{ mb: 2 }}
+      />
 
-      <div style={{ border: "1px solid #ddd", borderRadius: 12, padding: 12, marginBottom: 16 }}>
-        <h3>Додати нову книгу</h3>
+      <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
+        <Typography variant="h6" sx={{ mb: 1 }}>
+          Додати нову книгу
+        </Typography>
 
-        <div style={{ display: "grid", gap: 10 }}>
-          <input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Ім’я" />
-          <input value={newAuthor} onChange={(e) => setNewAuthor(e.target.value)} placeholder="Автор" />
-          <input value={newGenre} onChange={(e) => setNewGenre(e.target.value)} placeholder="Жанр" />
-          <input
-            value={newRating}
-            onChange={(e) => setNewRating(e.target.value)}
-            placeholder="Рейтинг (0..5)"
-          />
-          <textarea
-            value={newDescription}
-            onChange={(e) => setNewDescription(e.target.value)}
-            placeholder="Опис"
-            rows={3}
-          />
-          <button onClick={addBook}>Додати</button>
-        </div>
-      </div>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <TextField fullWidth label="Ім’я" value={newName} onChange={(e) => setNewName(e.target.value)} />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField fullWidth label="Автор" value={newAuthor} onChange={(e) => setNewAuthor(e.target.value)} />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField fullWidth label="Жанр" value={newGenre} onChange={(e) => setNewGenre(e.target.value)} />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Рейтинг (0..5)"
+              value={newRating}
+              onChange={(e) => setNewRating(e.target.value)}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Опис"
+              value={newDescription}
+              onChange={(e) => setNewDescription(e.target.value)}
+              multiline
+              rows={3}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <Button variant="contained" onClick={addBook}>
+              Додати
+            </Button>
+          </Grid>
+        </Grid>
+      </Paper>
 
-      <h3>Список книг</h3>
+      <Typography variant="h5" sx={{ mb: 1 }}>
+        Список книг
+      </Typography>
 
-      <div style={{ display: "grid", gap: 12 }}>
+      <Grid container spacing={1}>
+        <Grid item xs={12}>
+          <Paper variant="outlined" sx={{ p: 1.5 }}>
+            <Grid container>
+              <Grid item xs={12} sm={5}>
+                <Typography fontWeight={700}>Назва</Typography>
+              </Grid>
+              <Grid item xs={12} sm={5}>
+                <Typography fontWeight={700}>Автор</Typography>
+              </Grid>
+              <Grid item xs={12} sm={2}>
+                <Typography fontWeight={700}>Рейтинг</Typography>
+              </Grid>
+            </Grid>
+          </Paper>
+        </Grid>
+
         {filteredBooks.map((b) => (
-          <div key={b.id} style={{ border: "1px solid #ddd", borderRadius: 12, padding: 12, display: "flex", gap: 12 }}>
-            <img src={b.imgUrl} alt="book" width={60} height={80} />
-            <div style={{ flex: 1 }}>
-              <div><b>{b.name}</b></div>
-              <div>{b.author}</div>
-              <div>Рейтинг: {b.rating}</div>
-              <div>Прочитано: {b.isRead ? "так" : "ні"}</div>
-            </div>
+          <Grid item xs={12} key={b.id}>
+            <Paper variant="outlined" sx={{ p: 1.5 }}>
+              <Grid container spacing={1} alignItems="center">
+                <Grid item xs={12} sm={5}>
+                  <Typography fontWeight={600}>{b.name}</Typography>
+                </Grid>
+                <Grid item xs={12} sm={5}>
+                  <Typography>{b.author}</Typography>
+                </Grid>
+                <Grid item xs={6} sm={2}>
+                  <Typography>⭐ {b.rating}</Typography>
+                </Grid>
 
-            <button onClick={() => setSelectedBookId(b.id)}>Деталі</button>
-          </div>
+                <Grid item xs={6} sm="auto">
+                  <Button size="small" variant="contained" onClick={() => setSelectedBookId(b.id)}>
+                    Деталі
+                  </Button>
+                </Grid>
+              </Grid>
+            </Paper>
+          </Grid>
         ))}
 
         {filteredBooks.length === 0 && (
-          <div style={{ opacity: 0.7 }}>Нічого не знайдено</div>
+          <Grid item xs={12}>
+            <Typography sx={{ opacity: 0.7 }}>Нічого не знайдено</Typography>
+          </Grid>
         )}
-      </div>
-    </div>
+      </Grid>
+    </Container>
   );
 }
