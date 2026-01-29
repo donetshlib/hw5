@@ -1,0 +1,22 @@
+[
+  {
+    "id": "1",
+    "name": "Clean Code",
+    "author": "Robert C. Martin",
+    "imgUrl": "https://img.freepik.com/free-vector/blue-text-book-library-icon_24877-83092.jpg?semt=ais_hybrid&w=740&q=80",
+    "genre": "Programming",
+    "rating": 4.7,
+    "description": "How to write clean, maintainable code.",
+    "isRead": false
+  },
+  {
+    "id": "2",
+    "name": "The Pragmatic Programmer",
+    "author": "Andrew Hunt, David Thomas",
+    "imgUrl": "https://img.freepik.com/free-vector/blue-text-book-library-icon_24877-83092.jpg?semt=ais_hybrid&w=740&q=80",
+    "genre": "Programming",
+    "rating": 4.6,
+    "description": "Practical advice for software developers.",
+    "isRead": true
+  }
+]

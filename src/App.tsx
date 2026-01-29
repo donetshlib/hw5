@@ -1,66 +1,40 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Container, Grid, Typography, Button, TextField, Paper } from "@mui/material";
+import { Container, Grid, Typography, Button, TextField, Paper, Checkbox, FormControlLabel } from "@mui/material";
 
-type Book = {
-  id: string;
-  name: string;
-  author: string;
-  imgUrl: string;
-  genre: string;
-  rating: number;
-  description: string;
-  isRead: boolean;
-};
-
-const PLACEHOLDER_IMG = "https://img.freepik.com/free-vector/blue-text-book-library-icon_24877-83092.jpg?semt=ais_hybrid&w=740&q=80";
+import { useAppDispatch, useAppSelector } from "./store/hooks";
+import { fetchBooks, addBook, toggleRead, type BookDto } from "./store/booksSlice";
 
 export default function App() {
-  const [books, setBooks] = useState<Book[]>([
-    {
-      id: "1",
-      name: "Clean Code",
-      author: "Robert C. Martin",
-      imgUrl: PLACEHOLDER_IMG,
-      genre: "Programming",
-      rating: 4.7,
-      description: "How to write clean, maintainable code.",
-      isRead: false,
-    },
-    {
-      id: "2",
-      name: "The Pragmatic Programmer",
-      author: "Andrew Hunt, David Thomas",
-      imgUrl: PLACEHOLDER_IMG,
-      genre: "Programming",
-      rating: 4.6,
-      description: "Practical advice for software developers.",
-      isRead: true,
-    },
-  ]);
+  const dispatch = useAppDispatch();
+  const books = useAppSelector((s) => s.books.items);
+  const status = useAppSelector((s) => s.books.status);
+  const error = useAppSelector((s) => s.books.error);
 
   const [selectedBookId, setSelectedBookId] = useState<string | null>(null);
   const [filter, setFilter] = useState("");
 
-  const [newName, setNewName] = useState("");
-  const [newAuthor, setNewAuthor] = useState("");
-  const [newGenre, setNewGenre] = useState("");
-  const [newRating, setNewRating] = useState<string>("");
-  const [newDescription, setNewDescription] = useState("");
+  // ✅ DTO вместо 5 useState
+  const [dto, setDto] = useState<BookDto>({
+    name: "",
+    author: "",
+    genre: "",
+    rating: "",
+    description: "",
+  });
 
   // componentDidMount
   useEffect(() => {
     console.log("BooksApp mounted");
-  }, []);
+    dispatch(fetchBooks()); // thunk: загрузка "с сервера"
+  }, [dispatch]);
 
-  // componentDidUpdate logs
+  // componentDidUpdate (log changes)
   const prevRef = useRef({ books, filter, selectedBookId });
-
   useEffect(() => {
     const prev = prevRef.current;
     if (prev.books !== books) console.log("books changed", books);
     if (prev.filter !== filter) console.log("filter changed", filter);
-    if (prev.selectedBookId !== selectedBookId)
-      console.log("selectedBookId changed", selectedBookId);
+    if (prev.selectedBookId !== selectedBookId) console.log("selectedBookId changed", selectedBookId);
     prevRef.current = { books, filter, selectedBookId };
   }, [books, filter, selectedBookId]);
 
@@ -80,47 +54,13 @@ export default function App() {
     return books.find((b) => b.id === selectedBookId) ?? null;
   }, [books, selectedBookId]);
 
-  function addBook() {
-    const name = newName.trim();
-    const author = newAuthor.trim();
-    const genre = newGenre.trim();
-    const description = newDescription.trim();
-
-    if (!name || !author || !genre || !description) {
-      alert("Заповни всі поля: ім’я, автор, жанр, рейтинг, опис");
-      return;
-    }
-
-    const ratingNum = Number(newRating);
-    if (!Number.isFinite(ratingNum) || ratingNum < 0 || ratingNum > 5) {
-      alert("Рейтинг має бути числом від 0 до 5");
-      return;
-    }
-
-    const newBook: Book = {
-      id: crypto.randomUUID(),
-      name,
-      author,
-      imgUrl: PLACEHOLDER_IMG,
-      genre,
-      rating: ratingNum,
-      description,
-      isRead: false,
-    };
-
-    setBooks((prev) => [newBook, ...prev]);
-
-    setNewName("");
-    setNewAuthor("");
-    setNewGenre("");
-    setNewRating("");
-    setNewDescription("");
+  function onDtoChange<K extends keyof BookDto>(key: K, value: BookDto[K]) {
+    setDto((p) => ({ ...p, [key]: value }));
   }
 
-  function toggleRead(bookId: string) {
-    setBooks((prev) =>
-      prev.map((b) => (b.id === bookId ? { ...b, isRead: !b.isRead } : b))
-    );
+  function onAdd() {
+    dispatch(addBook(dto));
+    setDto({ name: "", author: "", genre: "", rating: "", description: "" });
   }
 
   // ----------------------------
@@ -144,37 +84,25 @@ export default function App() {
             </Grid>
 
             <Grid item xs={12} sm={8}>
-              <Typography>
-                <b>Ім’я:</b> {selectedBook.name}
-              </Typography>
-              <Typography>
-                <b>Автор:</b> {selectedBook.author}
-              </Typography>
-              <Typography>
-                <b>Жанр:</b> {selectedBook.genre}
-              </Typography>
-              <Typography>
-                <b>Рейтинг:</b> ⭐ {selectedBook.rating}
-              </Typography>
+              <Typography><b>Ім’я:</b> {selectedBook.name}</Typography>
+              <Typography><b>Автор:</b> {selectedBook.author}</Typography>
+              <Typography><b>Жанр:</b> {selectedBook.genre}</Typography>
+              <Typography><b>Рейтинг:</b> ⭐ {selectedBook.rating}</Typography>
 
-              <Typography sx={{ mt: 1 }}>
-                <b>Опис:</b> {selectedBook.description}
-              </Typography>
+              <Typography sx={{ mt: 1 }}><b>Опис:</b> {selectedBook.description}</Typography>
 
-              <label style={{ display: "block", marginTop: 12 }}>
-                <input
-                  type="checkbox"
-                  checked={selectedBook.isRead}
-                  onChange={() => toggleRead(selectedBook.id)}
-                />{" "}
-                прочитано
-              </label>
+              <FormControlLabel
+                sx={{ mt: 1 }}
+                control={
+                  <Checkbox
+                    checked={selectedBook.isRead}
+                    onChange={() => dispatch(toggleRead(selectedBook.id))}
+                  />
+                }
+                label="прочитано"
+              />
 
-              <Button
-                sx={{ mt: 2 }}
-                variant="contained"
-                onClick={() => setSelectedBookId(null)}
-              >
+              <Button sx={{ mt: 2 }} variant="contained" onClick={() => setSelectedBookId(null)}>
                 Назад до списку
               </Button>
             </Grid>
@@ -208,54 +136,22 @@ export default function App() {
 
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Ім’я"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-            />
+            <TextField fullWidth label="Ім’я" value={dto.name} onChange={(e) => onDtoChange("name", e.target.value)} />
           </Grid>
-
           <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Автор"
-              value={newAuthor}
-              onChange={(e) => setNewAuthor(e.target.value)}
-            />
+            <TextField fullWidth label="Автор" value={dto.author} onChange={(e) => onDtoChange("author", e.target.value)} />
           </Grid>
-
           <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Жанр"
-              value={newGenre}
-              onChange={(e) => setNewGenre(e.target.value)}
-            />
+            <TextField fullWidth label="Жанр" value={dto.genre} onChange={(e) => onDtoChange("genre", e.target.value)} />
           </Grid>
-
           <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Рейтинг (0..5)"
-              value={newRating}
-              onChange={(e) => setNewRating(e.target.value)}
-            />
+            <TextField fullWidth label="Рейтинг (0..5)" value={dto.rating} onChange={(e) => onDtoChange("rating", e.target.value)} />
           </Grid>
-
           <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Опис"
-              value={newDescription}
-              onChange={(e) => setNewDescription(e.target.value)}
-              multiline
-              rows={3}
-            />
+            <TextField fullWidth multiline rows={3} label="Опис" value={dto.description} onChange={(e) => onDtoChange("description", e.target.value)} />
           </Grid>
-
           <Grid item xs={12}>
-            <Button variant="contained" onClick={addBook}>
+            <Button variant="contained" onClick={onAdd}>
               Додати
             </Button>
           </Grid>
@@ -266,48 +162,29 @@ export default function App() {
         Список книг
       </Typography>
 
+      {status === "loading" && <Typography sx={{ opacity: 0.7 }}>Завантаження...</Typography>}
+      {status === "failed" && <Typography color="error">Помилка: {error}</Typography>}
+
       <Grid container spacing={1}>
-        {/* Header row (тільки на sm і більше) */}
         <Grid item xs={12} sx={{ display: { xs: "none", sm: "block" } }}>
           <Paper variant="outlined" sx={{ p: 1.5 }}>
             <Grid container spacing={2} alignItems="center">
-              <Grid item sm={5}>
-                <Typography fontWeight={700}>Назва</Typography>
-              </Grid>
-              <Grid item sm={5}>
-                <Typography fontWeight={700}>Автор</Typography>
-              </Grid>
-              <Grid item sm={2}>
-                <Typography fontWeight={700}>Рейтинг</Typography>
-              </Grid>
+              <Grid item sm={5}><Typography fontWeight={700}>Назва</Typography></Grid>
+              <Grid item sm={5}><Typography fontWeight={700}>Автор</Typography></Grid>
+              <Grid item sm={2}><Typography fontWeight={700}>Рейтинг</Typography></Grid>
             </Grid>
           </Paper>
         </Grid>
 
-        {/* Books rows */}
         {filteredBooks.map((b) => (
           <Grid item xs={12} key={b.id}>
             <Paper variant="outlined" sx={{ p: 1.5 }}>
               <Grid container spacing={2} alignItems="center">
-                <Grid item xs={12} sm={5}>
-                  <Typography fontWeight={600}>{b.name}</Typography>
-                </Grid>
-
-                <Grid item xs={12} sm={5}>
-                  <Typography>{b.author}</Typography>
-                </Grid>
-
-                <Grid item xs={6} sm={2}>
-                  <Typography>⭐ {b.rating}</Typography>
-                </Grid>
-
+                <Grid item xs={12} sm={5}><Typography fontWeight={600}>{b.name}</Typography></Grid>
+                <Grid item xs={12} sm={5}><Typography>{b.author}</Typography></Grid>
+                <Grid item xs={6} sm={2}><Typography>⭐ {b.rating}</Typography></Grid>
                 <Grid item xs={6} sm="auto">
-                  <Button
-                    fullWidth
-                    size="small"
-                    variant="contained"
-                    onClick={() => setSelectedBookId(b.id)}
-                  >
+                  <Button fullWidth size="small" variant="contained" onClick={() => setSelectedBookId(b.id)}>
                     Деталі
                   </Button>
                 </Grid>
@@ -316,10 +193,8 @@ export default function App() {
           </Grid>
         ))}
 
-        {filteredBooks.length === 0 && (
-          <Grid item xs={12}>
-            <Typography sx={{ opacity: 0.7 }}>Нічого не знайдено</Typography>
-          </Grid>
+        {filteredBooks.length === 0 && status !== "loading" && (
+          <Grid item xs={12}><Typography sx={{ opacity: 0.7 }}>Нічого не знайдено</Typography></Grid>
         )}
       </Grid>
     </Container>
